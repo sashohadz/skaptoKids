@@ -6,6 +6,11 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		A578A9462EE0D8AF00465260 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = A578A9452EE0D8AF00465260 /* RevenueCat */; };
+		A578A9482EE0D8AF00465260 /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = A578A9472EE0D8AF00465260 /* RevenueCatUI */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		A578A9262EE0C7E000465260 /* skaptoKids.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = skaptoKids.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,6 +28,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A578A9482EE0D8AF00465260 /* RevenueCatUI in Frameworks */,
+				A578A9462EE0D8AF00465260 /* RevenueCat in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +72,8 @@
 			);
 			name = skaptoKids;
 			packageProductDependencies = (
+				A578A9452EE0D8AF00465260 /* RevenueCat */,
+				A578A9472EE0D8AF00465260 /* RevenueCatUI */,
 			);
 			productName = skaptoKids;
 			productReference = A578A9262EE0C7E000465260 /* skaptoKids.app */;
@@ -94,6 +103,9 @@
 			);
 			mainGroup = A578A91D2EE0C7E000465260;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A578A9442EE0D8AF00465260 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A578A9272EE0C7E000465260 /* Products */;
 			projectDirPath = "";
@@ -332,6 +344,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A578A9442EE0D8AF00465260 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RevenueCat/purchases-ios-spm.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.49.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A578A9452EE0D8AF00465260 /* RevenueCat */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A578A9442EE0D8AF00465260 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
+			productName = RevenueCat;
+		};
+		A578A9472EE0D8AF00465260 /* RevenueCatUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A578A9442EE0D8AF00465260 /* XCRemoteSwiftPackageReference "purchases-ios-spm" */;
+			productName = RevenueCatUI;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = A578A91E2EE0C7E000465260 /* Project object */;
 }

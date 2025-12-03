@@ -6,12 +6,13 @@
 //
 
 import SwiftUI
+import RevenueCatUI
 
 struct WorkshopDetailView: View {
     let workshop: Workshop
     @Environment(\.dismiss) var dismiss
     @State private var showingBookingConfirmation = false
-    @State private var showingSubscriptionRequired = false
+    @State private var displayPaywall = false
     
     var revenueCatManager = RevenueCatManager.shared
     
@@ -50,13 +51,26 @@ struct WorkshopDetailView: View {
         } message: {
             Text("You're all set for \(workshop.title)! See you there!")
         }
-        .alert("Membership Required", isPresented: $showingSubscriptionRequired) {
-            Button("View Plans") {
-                // Navigate to subscription view
-            }
-            Button("Cancel", role: .cancel) { }
-        } message: {
-            Text("This workshop requires an active membership. Check out our plans to get started!")
+        .sheet(isPresented: $displayPaywall) {
+            PaywallView()
+                .onPurchaseCompleted { customerInfo in
+                    // Purchase completed successfully
+                    Task {
+                        await revenueCatManager.checkSubscriptionStatus()
+                        // After subscription is updated, book the workshop
+                        if revenueCatManager.currentSubscription.isActive {
+                            displayPaywall = false
+                            showingBookingConfirmation = true
+                        }
+                    }
+                }
+                .onRestoreCompleted { customerInfo in
+                    // Restore completed
+                    Task {
+                        await revenueCatManager.checkSubscriptionStatus()
+                        displayPaywall = false
+                    }
+                }
         }
     }
     
@@ -155,25 +169,67 @@ struct WorkshopDetailView: View {
     
     private var bookingButton: some View {
         Button {
-            if workshop.requiresMembership && !revenueCatManager.currentSubscription.isActive {
-                showingSubscriptionRequired = true
-            } else if workshop.spotsAvailable > 0 {
-                showingBookingConfirmation = true
+            // Check if there are spots available
+            guard workshop.spotsAvailable > 0 else { return }
+            
+            // Check if user has access to book
+            if revenueCatManager.canBookWorkshop() {
+                // User has access - book the workshop
+                bookWorkshop()
+            } else {
+                // User doesn't have access - show paywall
+                displayPaywall = true
             }
         } label: {
             HStack {
                 Image(systemName: workshop.spotsAvailable > 0 ? "checkmark.circle.fill" : "xmark.circle.fill")
-                Text(workshop.spotsAvailable > 0 ? "Book This Workshop" : "Workshop Full")
+                Text(bookingButtonText)
                     .fontWeight(.semibold)
             }
             .frame(maxWidth: .infinity)
             .padding()
-            .background(workshop.spotsAvailable > 0 ? workshopColor : Color.gray)
+            .background(bookingButtonColor)
             .foregroundStyle(.white)
             .clipShape(RoundedRectangle(cornerRadius: 12))
         }
-        .disabled(workshop.spotsAvailable == 0)
+        .disabled(!canBook)
         .padding(.top)
+    }
+    
+    private var bookingButtonText: String {
+        if workshop.spotsAvailable == 0 {
+            return "Workshop Full"
+        } else if !revenueCatManager.canBookWorkshop() && workshop.requiresMembership {
+            return "Get Access to Book"
+        } else {
+            return "Book This Workshop"
+        }
+    }
+    
+    private var bookingButtonColor: Color {
+        if workshop.spotsAvailable == 0 {
+            return .gray
+        } else if !revenueCatManager.canBookWorkshop() && workshop.requiresMembership {
+            return .blue
+        } else {
+            return workshopColor
+        }
+    }
+    
+    private var canBook: Bool {
+        workshop.spotsAvailable > 0
+    }
+    
+    private func bookWorkshop() {
+        Task {
+            // If user has a single visit pass, consume it
+            if revenueCatManager.currentSubscription.type == .oneTime {
+                await revenueCatManager.consumeSingleVisitPass()
+            }
+            
+            // Show booking confirmation
+            showingBookingConfirmation = true
+        }
     }
     
     private var workshopColor: Color {

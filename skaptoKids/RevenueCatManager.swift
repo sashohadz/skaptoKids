@@ -7,6 +7,7 @@
 
 import Foundation
 import RevenueCat
+import RevenueCatUI
 
 @MainActor
 @Observable
@@ -23,6 +24,9 @@ class RevenueCatManager {
     var availablePackages: [Package] = []
     var isLoading = false
     var errorMessage: String?
+    
+    // Paywall presentation control
+    var shouldPresentPaywall = false
     
     private init() {}
     
@@ -50,23 +54,51 @@ class RevenueCatManager {
     
     private func updateSubscriptionStatus(from customerInfo: CustomerInfo) {
         // Check for monthly subscription
-        if customerInfo.entitlements["monthly_membership"]?.isActive == true {
+        if customerInfo.entitlements["Monthly"]?.isActive == true {
             currentSubscription = UserSubscription(
                 isActive: true,
                 type: .monthly,
-                expirationDate: customerInfo.entitlements["monthly_membership"]?.expirationDate,
+                expirationDate: customerInfo.entitlements["Monthly"]?.expirationDate,
                 remainingVisits: 0
             )
         }
         // Check for one-time pass
-        else if customerInfo.entitlements["single_visit"]?.isActive == true {
-            // In a real app, you'd track remaining visits in your backend
-            currentSubscription = UserSubscription(
-                isActive: true,
-                type: .oneTime,
-                expirationDate: customerInfo.entitlements["single_visit"]?.expirationDate,
-                remainingVisits: 1
-            )
+        else if customerInfo.entitlements["singleVisit"]?.isActive == true {
+            // Check if this specific purchase has been consumed
+            // Get the latest transaction for this entitlement
+            let transactions = customerInfo.nonSubscriptions.filter { $0.productIdentifier == "singleVisit" }
+            
+            if let latestTransaction = transactions.first {
+                // Check if this transaction ID has been marked as consumed
+                let consumedKey = "consumed_\(latestTransaction.transactionIdentifier)"
+                let hasConsumed = UserDefaults.standard.bool(forKey: consumedKey)
+                
+                if hasConsumed {
+                    // This specific purchase was already used
+                    currentSubscription = UserSubscription(
+                        isActive: false,
+                        type: nil,
+                        expirationDate: nil,
+                        remainingVisits: 0
+                    )
+                } else {
+                    // Pass is available and not consumed yet
+                    currentSubscription = UserSubscription(
+                        isActive: true,
+                        type: .oneTime,
+                        expirationDate: customerInfo.entitlements["singleVisit"]?.expirationDate,
+                        remainingVisits: 1
+                    )
+                }
+            } else {
+                // Fallback - grant access if no transaction history
+                currentSubscription = UserSubscription(
+                    isActive: true,
+                    type: .oneTime,
+                    expirationDate: customerInfo.entitlements["singleVisit"]?.expirationDate,
+                    remainingVisits: 1
+                )
+            }
         }
         else {
             currentSubscription = UserSubscription(
@@ -124,5 +156,72 @@ class RevenueCatManager {
             print("Error restoring: \(error)")
             return false
         }
+    }
+    
+    // MARK: - Consume Single Visit Pass
+    func consumeSingleVisitPass() async -> Bool {
+        // Only proceed if user has a single visit pass
+        guard currentSubscription.type == .oneTime,
+              currentSubscription.remainingVisits > 0 else {
+            return false
+        }
+        
+        do {
+            let customerInfo = try await Purchases.shared.customerInfo()
+            
+            // Find the single visit entitlement and transaction
+            guard let entitlement = customerInfo.entitlements["singleVisit"],
+                  entitlement.isActive else {
+                print("No active singleVisit entitlement found")
+                return false
+            }
+            
+            // Get the transaction ID for this purchase
+            let transactions = customerInfo.nonSubscriptions.filter { $0.productIdentifier == "singleVisit" }
+            
+            if let latestTransaction = transactions.first {
+                // Mark this specific transaction as consumed in UserDefaults
+                // NOTE: For production, move this to your backend server
+                let consumedKey = "consumed_\(latestTransaction.transactionIdentifier)"
+                UserDefaults.standard.set(true, forKey: consumedKey)
+                
+                print("Marked transaction \(latestTransaction.transactionIdentifier) as consumed")
+            }
+            
+            // Update local state - mark as consumed
+            currentSubscription = UserSubscription(
+                isActive: false,
+                type: nil,
+                expirationDate: nil,
+                remainingVisits: 0
+            )
+            
+            print("Single visit pass consumed successfully")
+            return true
+            
+        } catch {
+            errorMessage = "Failed to consume pass: \(error.localizedDescription)"
+            print("Error consuming single visit pass: \(error)")
+            return false
+        }
+    }
+    
+    // MARK: - Check if user can book workshop
+    func canBookWorkshop() -> Bool {
+        guard currentSubscription.isActive else {
+            return false
+        }
+        
+        // Monthly subscribers can always book
+        if currentSubscription.type == .monthly {
+            return true
+        }
+        
+        // One-time pass holders need remaining visits
+        if currentSubscription.type == .oneTime {
+            return currentSubscription.remainingVisits > 0
+        }
+        
+        return false
     }
 }
