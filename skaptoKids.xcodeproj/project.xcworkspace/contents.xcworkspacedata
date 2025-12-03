@@ -7,4 +7,16 @@
    <FileRef
       location = "group:PaywallView.swift">
    </FileRef>
+   <FileRef
+      location = "group:Config.swift">
+   </FileRef>
+   <FileRef
+      location = "group:Config.swift.template">
+   </FileRef>
+   <FileRef
+      location = "group:SECURITY.md">
+   </FileRef>
+   <FileRef
+      location = "group:Config.swift 2.template">
+   </FileRef>
 </Workspace>

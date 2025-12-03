@@ -2,6 +2,31 @@
 
 A SwiftUI app for managing a kids workshop space where users can view the weekly program and subscribe for monthly memberships or one-time visits using RevenueCat.
 
+## 🔧 Initial Setup
+
+### 1. Configure API Keys (IMPORTANT - First Time Setup)
+This project uses sensitive API keys that should NOT be committed to git.
+
+1. **Copy the configuration template:**
+   ```bash
+   cp Config.swift.template Config.swift
+   ```
+
+2. **Add your RevenueCat API key:**
+   Open `Config.swift` and replace `YOUR_REVENUECAT_API_KEY_HERE` with your actual RevenueCat API key from the [RevenueCat Dashboard](https://app.revenuecat.com).
+
+3. **The file is already in .gitignore** so it won't be committed accidentally.
+
+⚠️ **NEVER commit `Config.swift` to git** - it contains your private API keys!
+
+### 2. Add RevenueCat to Your Project
+```bash
+# Using Swift Package Manager in Xcode:
+# 1. File → Add Package Dependencies
+# 2. Enter: https://github.com/RevenueCat/purchases-ios
+# 3. Select the latest version
+```
+
 ## ✅ What's Been Fixed
 
 ### 1. **Main Navigation Structure**
@@ -36,15 +61,7 @@ A SwiftUI app for managing a kids workshop space where users can view the weekly
 
 ## 🚀 Next Steps to Complete Integration
 
-### 1. Add RevenueCat to Your Project
-```bash
-# Using Swift Package Manager in Xcode:
-# 1. File → Add Package Dependencies
-# 2. Enter: https://github.com/RevenueCat/purchases-ios
-# 3. Select the latest version
-```
-
-### 2. Configure RevenueCat Dashboard
+### 1. Configure RevenueCat Dashboard
 1. Go to [RevenueCat Dashboard](https://app.revenuecat.com)
 2. Create a new project
 3. Add your iOS app with Bundle ID
@@ -54,14 +71,7 @@ A SwiftUI app for managing a kids workshop space where users can view the weekly
    - **Single Visit Pass**: Create a non-consumable or consumable product
      - Entitlement ID: `single_visit`
 
-### 3. Update API Key
-In `skaptoKidsApp.swift`, replace:
-```swift
-RevenueCatManager.shared.configure(apiKey: "YOUR_REVENUECAT_API_KEY")
-```
-with your actual RevenueCat API key from the dashboard.
-
-### 4. Configure In-App Purchases in App Store Connect
+### 2. Configure In-App Purchases in App Store Connect
 1. Create your subscription and one-time purchase products
 2. Match the product IDs with your RevenueCat configuration
 3. Configure pricing and availability

@@ -11,8 +11,8 @@ import SwiftUI
 struct skaptoKidsApp: App {
     init() {
         // Configure RevenueCat with your API key
-        // Replace this with your actual RevenueCat API key from the dashboard
-        RevenueCatManager.shared.configure(apiKey: "test_BrQgDaXblzSOTGXGcUfOFUIAgXD")
+        // API key is stored in Config.swift (not committed to git)
+        RevenueCatManager.shared.configure(apiKey: Config.revenueCatAPIKey)
     }
     
     var body: some Scene {
