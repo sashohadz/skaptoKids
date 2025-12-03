@@ -28,6 +28,9 @@ class RevenueCatManager {
     // Paywall presentation control
     var shouldPresentPaywall = false
     
+    // Custom attribute key for tracking daily passes
+    private let dailyPassesAttributeKey = "daily_passes_purchased"
+    
     private init() {}
     
     // MARK: - Configuration
@@ -134,6 +137,28 @@ class RevenueCatManager {
         do {
             let result = try await Purchases.shared.purchase(package: package)
             updateSubscriptionStatus(from: result.customerInfo)
+            
+            // Check if this is a single visit pass purchase
+            // Common identifiers: "single", "visit", "pass", "oneTime", "daily"
+            let productId = package.storeProduct.productIdentifier.lowercased()
+            print("🔍 Purchased product ID: '\(productId)'")
+            
+            let isSingleVisitPass = productId.contains("single") || 
+                                   productId.contains("visit") || 
+                                   productId.contains("pass") ||
+                                   productId.contains("daily") ||
+                                   productId.contains("onetime")
+            
+            print("🔍 Is single visit pass: \(isSingleVisitPass)")
+            
+            // Increment the daily passes counter for single visit purchases
+            if isSingleVisitPass {
+                print("🎫 Incrementing daily passes count...")
+                await incrementDailyPassesCount()
+            } else {
+                print("⏭️ Skipping daily passes increment for product: \(productId)")
+            }
+            
             return true
         } catch {
             errorMessage = "Purchase failed: \(error.localizedDescription)"
@@ -223,5 +248,46 @@ class RevenueCatManager {
         }
         
         return false
+    }
+    
+    // MARK: - Daily Passes Tracking
+    
+    /// Get the current count of daily passes purchased by counting transactions
+    func getDailyPassesCount() async -> Int {
+        do {
+            let customerInfo = try await Purchases.shared.customerInfo()
+            
+            // Count all non-subscription transactions for single visit passes
+            let singleVisitTransactions = customerInfo.nonSubscriptions.filter { 
+                $0.productIdentifier == "singleVisit" 
+            }
+            
+            return singleVisitTransactions.count
+        } catch {
+            print("Error getting daily passes count: \(error)")
+            return 0
+        }
+    }
+    
+    /// Set subscriber attributes for analytics (optional, for RevenueCat dashboard)
+    private func setDailyPassesAttribute(_ count: Int) async {
+        do {
+            try await Purchases.shared.setAttributes([dailyPassesAttributeKey: String(count)])
+            print("✅ Successfully set daily passes attribute to \(count)")
+        } catch {
+            print("❌ Error setting daily passes attribute: \(error)")
+            // Don't set errorMessage here as this is just for analytics
+        }
+    }
+    
+    /// Increment the daily passes counter (for analytics tracking)
+    func incrementDailyPassesCount() async {
+        print("📊 incrementDailyPassesCount() called")
+        let currentCount = await getDailyPassesCount()
+        print("📊 User has purchased \(currentCount) daily passes total")
+        
+        // Optionally set this as a subscriber attribute for analytics in RevenueCat dashboard
+        await setDailyPassesAttribute(currentCount)
+        print("📊 Finished setting daily passes attribute")
     }
 }

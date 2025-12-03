@@ -9,10 +9,12 @@
 /* Begin PBXBuildFile section */
 		A578A9462EE0D8AF00465260 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = A578A9452EE0D8AF00465260 /* RevenueCat */; };
 		A578A9482EE0D8AF00465260 /* RevenueCatUI in Frameworks */ = {isa = PBXBuildFile; productRef = A578A9472EE0D8AF00465260 /* RevenueCatUI */; };
+		A578A9602EE0FB7E00465260 /* DailyPassesDebugView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A578A95F2EE0FB7E00465260 /* DailyPassesDebugView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		A578A9262EE0C7E000465260 /* skaptoKids.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = skaptoKids.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A578A95F2EE0FB7E00465260 /* DailyPassesDebugView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyPassesDebugView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -41,6 +43,7 @@
 			children = (
 				A578A9282EE0C7E000465260 /* skaptoKids */,
 				A578A9272EE0C7E000465260 /* Products */,
+				A578A95F2EE0FB7E00465260 /* DailyPassesDebugView.swift */,
 			);
 			sourceTree = "<group>";
 		};
@@ -131,6 +134,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A578A9602EE0FB7E00465260 /* DailyPassesDebugView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

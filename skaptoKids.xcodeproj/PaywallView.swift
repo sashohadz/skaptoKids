@@ -11,7 +11,7 @@ import RevenueCatUI
 
 /// A wrapper view for presenting RevenueCat paywalls
 /// This provides more control over the paywall presentation
-struct PaywallView: View {
+struct CustomRevenueCatPaywallView: View {
     @Environment(\.dismiss) var dismiss
     var revenueCatManager = RevenueCatManager.shared
     
@@ -24,13 +24,21 @@ struct PaywallView: View {
     var onDismiss: (() -> Void)?
     
     var body: some View {
-        PaywallView(
+        RevenueCatUI.PaywallView(
             offering: nil, // Use current offering, or specify one
             customerInfo: nil // Let RevenueCat fetch it
         )
         .onPurchaseCompleted { customerInfo in
             // Handle successful purchase
             Task {
+                print("🎯 Purchase completed in PaywallView")
+                
+                // Check what was purchased and track it
+                if customerInfo.entitlements["singleVisit"]?.isActive == true {
+                    print("🎫 Single visit pass detected, tracking purchase...")
+                    await revenueCatManager.incrementDailyPassesCount()
+                }
+                
                 await revenueCatManager.checkSubscriptionStatus()
                 onPurchaseCompleted?(customerInfo)
                 dismiss()

@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ProfileView: View {
     var revenueCatManager = RevenueCatManager.shared
+    @State private var dailyPassesCount: Int = 0
     
     var body: some View {
         NavigationStack {
@@ -54,6 +55,21 @@ struct ProfileView: View {
                                 .font(.subheadline)
                         }
                     }
+                    
+                    // Daily passes purchased counter
+                    HStack {
+                        Image(systemName: "ticket.fill")
+                            .foregroundStyle(.purple)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Total Daily Passes Purchased")
+                                .font(.subheadline)
+                            Text("\(dailyPassesCount)")
+                                .font(.title3)
+                                .fontWeight(.bold)
+                                .foregroundStyle(.primary)
+                        }
+                    }
+                    .padding(.vertical, 4)
                 }
                 
                 // Bookings Section
@@ -91,6 +107,18 @@ struct ProfileView: View {
                         }
                     }
                     
+                    #if DEBUG
+                    NavigationLink {
+                        DailyPassesDebugView()
+                    } label: {
+                        HStack {
+                            Image(systemName: "ladybug.fill")
+                                .foregroundStyle(.red)
+                            Text("Debug: Daily Passes Counter")
+                        }
+                    }
+                    #endif
+                    
                     Link(destination: URL(string: "https://your-website.com/support")!) {
                         HStack {
                             Image(systemName: "questionmark.circle.fill")
@@ -120,6 +148,14 @@ struct ProfileView: View {
                 }
             }
             .navigationTitle("Profile")
+            .task {
+                // Load the daily passes count when view appears
+                dailyPassesCount = await revenueCatManager.getDailyPassesCount()
+            }
+            .refreshable {
+                // Refresh the count on pull-to-refresh
+                dailyPassesCount = await revenueCatManager.getDailyPassesCount()
+            }
         }
     }
 }

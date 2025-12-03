@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import RevenueCat
 import RevenueCatUI
 
 struct WorkshopDetailView: View {
@@ -52,10 +53,17 @@ struct WorkshopDetailView: View {
             Text("You're all set for \(workshop.title)! See you there!")
         }
         .sheet(isPresented: $displayPaywall) {
-            PaywallView()
+            RevenueCatUI.PaywallView()
                 .onPurchaseCompleted { customerInfo in
                     // Purchase completed successfully
+                    print("🎯 Purchase completed in WorkshopDetailView")
                     Task {
+                        // Check what was purchased and track it
+                        if customerInfo.entitlements["singleVisit"]?.isActive == true {
+                            print("🎫 Single visit pass detected, tracking purchase...")
+                            await revenueCatManager.incrementDailyPassesCount()
+                        }
+                        
                         await revenueCatManager.checkSubscriptionStatus()
                         // After subscription is updated, book the workshop
                         if revenueCatManager.currentSubscription.isActive {

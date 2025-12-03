@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import RevenueCat
 
 struct DailyPassesDebugView: View {
     @State private var currentCount: Int = 0
