@@ -1,0 +1,15 @@
+//
+//  Config.swift.template
+//  skaptoKids
+//
+//  INSTRUCTIONS:
+//  1. Copy this file and rename it to "Config.swift"
+//  2. Replace "YOUR_REVENUECAT_API_KEY_HERE" with your actual RevenueCat API key
+//  3. Never commit Config.swift to git (it's in .gitignore)
+//
+
+import Foundation
+
+enum Config {
+    static let revenueCatAPIKey = "YOUR_REVENUECAT_API_KEY_HERE"
+}
