@@ -56,8 +56,13 @@ class RevenueCatManager {
     }
     
     private func updateSubscriptionStatus(from customerInfo: CustomerInfo) {
+        print("🔍 updateSubscriptionStatus called")
+        print("🔍 Entitlements: \(customerInfo.entitlements.all.keys)")
+        print("🔍 NonSubscriptions count: \(customerInfo.nonSubscriptions.count)")
+        
         // Check for monthly subscription
         if customerInfo.entitlements["Monthly"]?.isActive == true {
+            print("✅ Monthly subscription is active")
             currentSubscription = UserSubscription(
                 isActive: true,
                 type: .monthly,
@@ -67,43 +72,51 @@ class RevenueCatManager {
         }
         // Check for one-time pass
         else if customerInfo.entitlements["singleVisit"]?.isActive == true {
-            // Check if this specific purchase has been consumed
-            // Get the latest transaction for this entitlement
+            print("✅ singleVisit entitlement is active")
+            // Check if ANY purchase has NOT been consumed yet
+            // Get all transactions for this entitlement
             let transactions = customerInfo.nonSubscriptions.filter { $0.productIdentifier == "singleVisit" }
+            print("🔍 Found \(transactions.count) singleVisit transactions")
             
-            if let latestTransaction = transactions.first {
-                // Check if this transaction ID has been marked as consumed
-                let consumedKey = "consumed_\(latestTransaction.transactionIdentifier)"
+            // Check if there's at least one unconsumed transaction
+            var hasUnconsumedPass = false
+            var unconsumedTransaction: NonSubscriptionTransaction?
+            
+            for transaction in transactions {
+                let consumedKey = "consumed_\(transaction.transactionIdentifier)"
                 let hasConsumed = UserDefaults.standard.bool(forKey: consumedKey)
+                print("🔍 Transaction \(transaction.transactionIdentifier) - consumed? \(hasConsumed)")
                 
-                if hasConsumed {
-                    // This specific purchase was already used
-                    currentSubscription = UserSubscription(
-                        isActive: false,
-                        type: nil,
-                        expirationDate: nil,
-                        remainingVisits: 0
-                    )
-                } else {
-                    // Pass is available and not consumed yet
-                    currentSubscription = UserSubscription(
-                        isActive: true,
-                        type: .oneTime,
-                        expirationDate: customerInfo.entitlements["singleVisit"]?.expirationDate,
-                        remainingVisits: 1
-                    )
+                if !hasConsumed {
+                    hasUnconsumedPass = true
+                    unconsumedTransaction = transaction
+                    print("✅ Found unconsumed transaction: \(transaction.transactionIdentifier)")
+                    break
                 }
-            } else {
-                // Fallback - grant access if no transaction history
+            }
+            
+            if hasUnconsumedPass {
+                // Pass is available and not consumed yet
+                print("✅ Pass is available and not consumed")
                 currentSubscription = UserSubscription(
                     isActive: true,
                     type: .oneTime,
                     expirationDate: customerInfo.entitlements["singleVisit"]?.expirationDate,
                     remainingVisits: 1
                 )
+            } else {
+                // All purchases have been consumed
+                print("❌ All passes have been consumed, marking as inactive")
+                currentSubscription = UserSubscription(
+                    isActive: false,
+                    type: nil,
+                    expirationDate: nil,
+                    remainingVisits: 0
+                )
             }
         }
         else {
+            print("❌ No active subscriptions or passes found")
             currentSubscription = UserSubscription(
                 isActive: false,
                 type: nil,
@@ -111,6 +124,8 @@ class RevenueCatManager {
                 remainingVisits: 0
             )
         }
+        
+        print("🎯 Final subscription state - isActive: \(currentSubscription.isActive), type: \(String(describing: currentSubscription.type))")
     }
     
     // MARK: - Load Offerings

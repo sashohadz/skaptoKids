@@ -9,7 +9,7 @@ import SwiftUI
 import RevenueCat
 
 struct SubscriptionView: View {
-    var revenueCatManager = RevenueCatManager.shared
+    @State var revenueCatManager = RevenueCatManager.shared
     @State private var showingPurchaseError = false
     @State private var showingRestoreSuccess = false
     
@@ -117,7 +117,10 @@ struct SubscriptionView: View {
                     RevenueCatPlanCard(package: package) {
                         Task {
                             let success = await revenueCatManager.purchase(package: package)
-                            if !success {
+                            if success {
+                                // Explicitly refresh subscription status after successful purchase
+                                await revenueCatManager.checkSubscriptionStatus()
+                            } else {
                                 showingPurchaseError = true
                             }
                         }
